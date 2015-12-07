@@ -100,7 +100,6 @@ int main (int argc, char** argv) {
 	std::cerr << "Initialized buffer (" << bufferSize << " bytes)" << std::endl;
 
 	uint64_t remainder = 0;
-	uint64_t height = 0;
 
 	ThreadPool<std::function<void(void)>> pool(nThreads);
 	std::cerr << "Initialized " << nThreads << " threads in the thread pool" << std::endl;
@@ -117,7 +116,6 @@ int main (int argc, char** argv) {
 		pool.wait();
 
 		// swap the buffers
-		std::cerr << "-- Processed up to chain height: ~" << height << std::endl;
 		std::swap(buffer, iobuffer);
 
 		auto slice = buffer.take(remainder + read);
@@ -154,7 +152,6 @@ int main (int argc, char** argv) {
 			pool.push([data, delegate]() { delegate(data); });
 
 			slice.popFrontN(needed);
-			height += 1;
 		}
 
 		if (eof) break;
