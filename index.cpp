@@ -68,7 +68,7 @@ void processBlocks (Slice<uint8_t> data) {
 	uint8_t wbuf[32+ 32] = {0};
 
 	hash256(&wbuf[0], block.headerData);
-	memcpy(&wbuf[32], block.header()->prevHash, 32);
+	memcpy(&wbuf[32], &block.header()->prevHash[0], 32);
 
 	fwrite(wbuf, sizeof(wbuf), 1, stdout);
 }
