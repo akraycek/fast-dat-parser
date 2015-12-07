@@ -18,10 +18,10 @@ void writehexln (const T& wbuf) {
 
 void processBlocks (Slice<uint8_t> data) {
 	auto block = Block(data.take(80), data.drop(80));
-	uint8_t wbuf[32 + 32] = {0};
+	uint8_t wbuf[32 + 32];
 
-	hash256(&wbuf[0], block.headerData);
-	memcpy(&wbuf[32], &block.header()->prevHash[0], 32);
+	hash256(&wbuf[0], block.header);
+	memcpy(&wbuf[32], &block.header[4], 32);
 
 	fwrite(wbuf, sizeof(wbuf), 1, stdout);
 }
@@ -30,7 +30,7 @@ void processScriptShas (Slice<uint8_t> data) {
 	const auto block = Block(data.take(80), data.drop(80));
 	uint8_t wbuf[32 + 32 + 20] = {0};
 
-	hash256(&wbuf[0], block.headerData);
+	hash256(&wbuf[0], block.header);
 
 	auto transactions = block.transactions();
 	while (!transactions.empty()) {

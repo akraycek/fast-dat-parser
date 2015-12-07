@@ -153,14 +153,10 @@ struct Block {
 		uint32_t nonce;
 	};
 
-	Slice<uint8_t> headerData;
+	Slice<uint8_t> header;
 	Slice<uint8_t> data;
 
-	Block(Slice<uint8_t> headerData, Slice<uint8_t> data) : headerData(headerData), data(data) {}
-
-	auto header () {
-		return reinterpret_cast<Header*>(&this->headerData.begin);
-	}
+	Block(Slice<uint8_t> header, Slice<uint8_t> data) : header(header), data(data) {}
 
 	auto transactions () const {
 		auto tdata = this->data;
