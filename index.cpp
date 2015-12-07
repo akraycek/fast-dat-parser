@@ -3,10 +3,9 @@
 #include <functional>
 #include <iostream>
 
-#include "sha1.h"
-#include "sha256.h"
-#include "slice.hpp"
 #include "block.hpp"
+#include "hash.hpp"
+#include "slice.hpp"
 #include "threadpool.h"
 
 template <typename T>
@@ -15,21 +14,6 @@ void writehexln (const T& wbuf) {
 		fprintf(stderr, "%02x", wbuf[i]);
 	}
 	fprintf(stderr, "\n");
-}
-
-void sha1 (uint8_t* dest, Slice<uint8_t> src) {
-	CSHA1 hash;
-	hash.Write(src.begin, src.length());
-	hash.Finalize(dest);
-}
-
-void hash256 (uint8_t* dest, Slice<uint8_t> src) {
-	CSHA256 hash;
-	hash.Write(src.begin, src.length());
-	hash.Finalize(dest);
-	hash.Reset();
-	hash.Write(dest, 32);
-	hash.Finalize(dest);
 }
 
 void processBlocks (Slice<uint8_t> data) {
