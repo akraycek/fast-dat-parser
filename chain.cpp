@@ -30,7 +30,7 @@ auto buildChains(std::map<hash_t, Link>& chains, const std::map<hash_t, hash_t>&
 	auto prevChain = chains.find(prev->second);
 
 	// is the previous chain already built?
-	if (prevChain != chains.end()) return chains.emplace(hash_t(prev->first), prevChain);
+	if (prevChain != chains.end()) return chains.emplace(hash_t(prev->first), prevChain->second);
 
 	return buildChains(chains, mappings, *prev);
 }
