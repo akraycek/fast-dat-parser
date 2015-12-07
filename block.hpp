@@ -144,23 +144,23 @@ public:
 };
 
 struct Block {
-// 	struct Header {
-// 		uint32_t version;
-// 		uint8_t prevHash[32];
-// 		uint8_t merkleRoot[32];
-// 		uint32_t timestamp;
-// 		uint32_t bits;
-// 		uint32_t nonce;
-// 	};
+	struct Header {
+		uint32_t version;
+		uint8_t prevHash[32];
+		uint8_t merkleRoot[32];
+		uint32_t timestamp;
+		uint32_t bits;
+		uint32_t nonce;
+	};
 
-	Slice<uint8_t> header;
+	Slice<uint8_t> headerData;
 	Slice<uint8_t> data;
 
-	Block(Slice<uint8_t> header, Slice<uint8_t> data) : header(header), data(data) {}
+	Block(Slice<uint8_t> headerData, Slice<uint8_t> data) : headerData(headerData), data(data) {}
 
-// 	auto __header () {
-// 		return reinterpret_cast<Header*>(&this->header.begin);
-// 	}
+	auto header () {
+		return reinterpret_cast<Header*>(&this->headerData.begin);
+	}
 
 	auto transactions () const {
 		auto tdata = this->data;

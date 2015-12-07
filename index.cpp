@@ -1,6 +1,7 @@
 #include <cstdio>
-#include <iostream>
+#include <cstring>
 #include <functional>
+#include <iostream>
 
 #include "sha1.h"
 #include "sha256.h"
@@ -30,11 +31,11 @@ void writehexln (Slice<uint8_t> wbuf) {
 	fprintf(stderr, "\n");
 }
 
-void process (Slice<uint8_t> data) {
+void processScriptShas (Slice<uint8_t> data) {
 	const auto block = Block(data.take(80), data.drop(80));
 	uint8_t wbuf[32 + 32 + 20] = {0};
 
-	hash256(&wbuf[0], block.header);
+	hash256(&wbuf[0], block.headerData);
 
 	auto transactions = block.transactions();
 	while (!transactions.empty()) {
@@ -60,6 +61,16 @@ void process (Slice<uint8_t> data) {
 
 		transactions.popFront();
 	}
+}
+
+void processBlocks (Slice<uint8_t> data) {
+	auto block = Block(data.take(80), data.drop(80));
+	uint8_t wbuf[32+ 32] = {0};
+
+	hash256(&wbuf[0], block.headerData);
+	memcpy(&wbuf[32], block.header()->prevHash, 32);
+
+	fwrite(wbuf, sizeof(wbuf), 1, stdout);
 }
 
 static size_t bufferSize = 100 * 1024 * 1024;
@@ -137,7 +148,7 @@ int main (int argc, char** argv) {
 			if (needed > slice.length()) break;
 
 			const auto data = slice.drop(8).take(needed - 8);
-			pool.push([data]() { process(data); });
+			pool.push([data]() { processBlocks(data); });
 
 			slice.popFrontN(needed);
 			height += 1;
