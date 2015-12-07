@@ -46,6 +46,10 @@ struct Slice {
 		return static_cast<size_t>(this->end - this->begin);
 	}
 
+	auto size() const {
+		return this->length();
+	}
+
 	template <typename Y>
 	Y peek () const {
 		return *(reinterpret_cast<Y*>(this->begin));

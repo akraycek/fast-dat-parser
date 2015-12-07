@@ -9,6 +9,14 @@
 #include "block.hpp"
 #include "threadpool.h"
 
+template <typename T>
+void writehexln (const T& wbuf) {
+	for (size_t i = 0; i < wbuf.size(); ++i) {
+		fprintf(stderr, "%02x", wbuf[i]);
+	}
+	fprintf(stderr, "\n");
+}
+
 void sha1 (uint8_t* dest, Slice<uint8_t> src) {
 	CSHA1 hash;
 	hash.Write(src.begin, src.length());
@@ -22,13 +30,6 @@ void hash256 (uint8_t* dest, Slice<uint8_t> src) {
 	hash.Reset();
 	hash.Write(dest, 32);
 	hash.Finalize(dest);
-}
-
-void writehexln (Slice<uint8_t> wbuf) {
-	for (size_t i = 0; i < wbuf.length(); ++i) {
-		fprintf(stderr, "%02x", wbuf[i]);
-	}
-	fprintf(stderr, "\n");
 }
 
 void processBlocks (Slice<uint8_t> data) {
