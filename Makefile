@@ -11,10 +11,7 @@ clean:
 	rm -f index
 
 test: index
-	cat blk*.dat | ./index -b=$(BUFFER_SIZE) -n=$(N_THREADS) > test.output
+	cat blk*.dat | ./index -b=$(BUFFER_SIZE) -n=$(N_THREADS) > output.dat
 
 run: index
-	cat ~/.bitcoin/blocks/blk*.dat | ./index -b=$(BUFFER_SIZE) -n=$(N_THREADS) > ~/.bitcoin/script-index.dat
-
-dry-run: index
-	cat ~/.bitcoin/blocks/blk*.dat | ./index -b=$(BUFFER_SIZE) -n=$(N_THREADS) > /dev/null
+	cat ~/.bitcoin/blocks/blk*.dat | ./index -b=$(BUFFER_SIZE) -n=$(N_THREADS) > output.dat
