@@ -60,7 +60,7 @@ void processScriptShas (Slice<uint8_t> data) {
 }
 
 static size_t bufferSize = 100 * 1024 * 1024;
-static size_t nThreads = 2;
+static size_t nThreads = 1;
 static size_t function = 0;
 
 auto parseArg (char* argv) {
