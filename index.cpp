@@ -60,12 +60,12 @@ void processScriptShas (Slice<uint8_t> data) {
 
 static size_t bufferSize = 100 * 1024 * 1024;
 static size_t nThreads = 2;
-static unsigned blocksOnly = 0;
+static size_t function = 0;
 
 auto parseArg (char* argv) {
 	if (sscanf(argv, "-b=%lu", &bufferSize) == 1) return true;
-	if (sscanf(argv, "-bo=%u", &blocksOnly) == 1) return true;
 	if (sscanf(argv, "-n=%lu", &nThreads) == 1) return true;
+	if (sscanf(argv, "-f=%lu", &function) == 1) return true;
 	return false;
 }
 
@@ -77,7 +77,7 @@ int main (int argc, char** argv) {
 		return 1;
 	}
 
-	const auto delegate = blocksOnly ? &processBlocks : &processScriptShas;
+	const auto delegate = function == 0 ? &processBlocks : &processScriptShas;
 	const auto backbuffer = std::unique_ptr<uint8_t>(new uint8_t[bufferSize]);
 
 	auto iobuffer = Slice<uint8_t>(backbuffer.get(), backbuffer.get() + bufferSize / 2);

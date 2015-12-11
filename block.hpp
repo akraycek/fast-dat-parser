@@ -167,7 +167,7 @@ struct Block {
 		const uint32_t exponent = ((bits & 0xff000000) >> 24) - 3;
 		const uint32_t mantissa = bits & 0x007fffff;
 		const size_t i = (size_t) 31 - exponent;
-		assert(i < 32);
+		if (i > 32) return;
 
 		buffer[i] = (uint8_t) (mantissa & 0xff);
 		buffer[i - 1] = (uint8_t) (mantissa >> 8);
@@ -184,7 +184,7 @@ struct Block {
 
 	auto verify () const {
 		uint8_t hash[32];
-		uint8_t _target[32];
+		uint8_t _target[32] = {0};
 
 		hash256(&hash[0], this->header);
 		std::reverse(&hash[0], &hash[32]);
