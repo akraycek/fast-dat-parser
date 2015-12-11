@@ -7,14 +7,7 @@
 #include "hash.hpp"
 #include "slice.hpp"
 #include "threadpool.h"
-
-template <typename F, typename T>
-void writehexln (F f, const T& wbuf) {
-	for (size_t i = 0; i < wbuf.size(); ++i) {
-		fprintf(f, "%02x", wbuf[i]);
-	}
-	fprintf(f, "\n");
-}
+#include "utils.hpp"
 
 void processBlocks (Slice<uint8_t> data) {
 	auto block = Block(data.take(80), data.drop(80));
@@ -23,8 +16,8 @@ void processBlocks (Slice<uint8_t> data) {
 	hash256(&wbuf[0], block.header);
 	memcpy(&wbuf[32], &block.header[4], 32);
 
-	fwrite(wbuf, sizeof(wbuf), 1, stdout);
-// 	writehexln(stderr, Slice<uint8_t>(wbuf, wbuf + sizeof(wbuf)));
+// 	fwrite(wbuf, sizeof(wbuf), 1, stdout);
+	fwritehexln(wbuf, sizeof(wbuf), stderr);
 }
 
 void processScriptShas (Slice<uint8_t> data) {
@@ -44,7 +37,7 @@ void processScriptShas (Slice<uint8_t> data) {
 
 			// no locking, 84 bytes < PIPE_BUF (4096 bytes)
 			fwrite(wbuf, sizeof(wbuf), 1, stdout);
-// 			writehexln(stderr, Slice<uint8_t>(wbuf, wbuf + sizeof(wbuf)));
+// 			fwritehexln(wbuf, sizeof(wbuf), stderr);
 		}
 
 		for (const auto& output : transaction.outputs) {
@@ -52,7 +45,7 @@ void processScriptShas (Slice<uint8_t> data) {
 
 			// no locking, 84 bytes < PIPE_BUF (4096 bytes)
 			fwrite(wbuf, sizeof(wbuf), 1, stdout);
-// 			writehexln(stderr, Slice<uint8_t>(wbuf, wbuf + sizeof(wbuf)));
+// 			fwritehexln(wbuf, sizeof(wbuf), stderr);
 		}
 
 		transactions.popFront();

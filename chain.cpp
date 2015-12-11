@@ -5,16 +5,9 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include "utils.hpp"
 
 typedef std::array<uint8_t, 32> hash_t;
-
-template <typename F, typename T>
-void writerevhexln (F& f, const T& wbuf) {
-	for (size_t i = 0; i < 32; ++i) {
-		fprintf(f, "%02x", wbuf[31 - i]);
-	}
-	fprintf(f, "\n");
-}
 
 struct Block {
 	hash_t hash;
@@ -144,7 +137,9 @@ int main () {
 
 	std::cerr << "-[]-[]-[] Found chain with length " << bestBlockChain.size() << std::endl;
 	for(auto it = bestBlockChain.rbegin(); it != bestBlockChain.rend(); ++it) {
-		writerevhexln(stdout, it->hash);
+		std::reverse(&it->hash[0], &it->hash[32]);
+
+		fwritehexln(&it->hash[0], 32, stdout);
 	}
 
 	return 0;
