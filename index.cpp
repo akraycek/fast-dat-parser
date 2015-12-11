@@ -106,28 +106,25 @@ int main (int argc, char** argv) {
 		auto slice = buffer.take(remainder + read);
 		std::cerr << "-- Processing " << slice.length() / 1024 << " KiB" << std::endl;
 
-		while (slice.length() >= 8) {
-			// skip mis-allocated zero pre-allocations
+		while (slice.length() >= 80) {
+			// skip bad data (includes bitcoind zero pre-allocations)
 			if (slice.peek<uint32_t>() != 0xd9b4bef9) {
-				size_t zeros = 0;
-				while (slice.length() > 0 && slice.peek<uint8_t>() == 0x00) {
-					slice.popFront();
-					++zeros;
+				while (slice.length() >= 4 && slice.peek<uint32_t>() != 0xd9b4bef9) {
+					slice.popFrontN(4);
 				}
 
-				if (zeros == 0) {
-					std::cerr << "--!! Unexpected data " << static_cast<uint32_t>(slice.peek<uint8_t>()) << std::endl;
-
-					pool.join();
-					writehexln(slice);
-					return 1;
-				}
-
-				std::cerr << "--() Gap: " << zeros << " bytes (" << slice.length() << " bytes remaining)" << std::endl;
 				continue;
 			}
 
 			const auto length = slice.drop(4).peek<uint32_t>();
+			const auto header = Block(slice.drop(80), slice.drop(80).take(0));
+
+			if (!header.verify()) {
+				slice.popFrontN(80);
+				std::cerr << "Skipping invalid block" << std::endl;
+
+				break;
+			}
 
 			// do we have enough data?
 			const auto needed = 8 + length;

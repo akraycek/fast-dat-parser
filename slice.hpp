@@ -66,7 +66,8 @@ struct Slice {
 		assert(this->length() >= i);
 		return this->begin[i];
 	}
-	T operator[](const size_t i) const {
+
+	const T& operator[](const size_t i) const {
 		assert(this->length() >= i);
 		return this->begin[i];
 	}

@@ -1,8 +1,11 @@
 #pragma once
 
+#include <algorithm>
+#include <cassert>
 #include <cstdint>
 #include <vector>
 
+#include "hash.hpp"
 #include "slice.hpp"
 
 uint64_t readVI (Slice<uint8_t>& data) {
@@ -158,10 +161,34 @@ struct Block {
 
 	Block(Slice<uint8_t> header, Slice<uint8_t> data) : header(header), data(data) {}
 
+	void target (uint8_t buffer[32]) const {
+		const auto bits = reinterpret_cast<const Header*>(&this->header[0])->bits;
+		const uint32_t exponent = ((bits & 0xff000000) >> 24) - 3;
+		const uint32_t mantissa = bits & 0x007fffff;
+		const size_t i = (size_t) 31 - exponent;
+		assert(i < 32);
+
+		buffer[i] = (uint8_t) (mantissa & 0xff);
+		buffer[i - 1] = (uint8_t) (mantissa >> 8);
+		buffer[i - 2] = (uint8_t) (mantissa >> 16);
+		buffer[i - 3] = (uint8_t) (mantissa >> 24);
+	}
+
 	auto transactions () const {
 		auto tdata = this->data;
 		auto n = readVI(tdata);
 
 		return TransactionRange(n, tdata);
+	}
+
+	auto verify () const {
+		uint8_t hash[32];
+		uint8_t _target[32];
+
+		hash256(&hash[0], this->header);
+		std::reverse(&hash[0], &hash[32]);
+		this->target(_target);
+
+		return memcmp(hash, _target, 32) <= 0;
 	}
 };
