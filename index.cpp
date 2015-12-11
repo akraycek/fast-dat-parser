@@ -73,7 +73,6 @@ int main (int argc, char** argv) {
 	for (auto i = 1; i < argc; ++i) {
 		if (parseArg(argv[i])) continue;
 
-		std::cerr << "index -b=BUFFER_SIZE -n=N_THREADS" << std::endl;
 		return 1;
 	}
 
