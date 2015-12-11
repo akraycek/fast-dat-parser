@@ -159,6 +159,7 @@ struct Block {
 	Slice<uint8_t> header;
 	Slice<uint8_t> data;
 
+	Block(Slice<uint8_t> header) : header(header) {}
 	Block(Slice<uint8_t> header, Slice<uint8_t> data) : header(header), data(data) {}
 
 	void target (uint8_t buffer[32]) const {

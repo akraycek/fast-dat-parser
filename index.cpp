@@ -117,12 +117,11 @@ int main (int argc, char** argv) {
 			}
 
 			const auto length = slice.drop(4).peek<uint32_t>();
-			const auto header = Block(slice.drop(80), slice.drop(80).take(0));
+			const auto header = Block(slice.drop(8).take(80));
 
 			if (!header.verify()) {
 				slice.popFrontN(80);
 				std::cerr << "Skipping invalid block" << std::endl;
-
 				break;
 			}
 
