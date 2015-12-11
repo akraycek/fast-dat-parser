@@ -166,13 +166,13 @@ struct Block {
 		const auto bits = reinterpret_cast<const Header*>(&this->header[0])->bits;
 		const uint32_t exponent = ((bits & 0xff000000) >> 24) - 3;
 		const uint32_t mantissa = bits & 0x007fffff;
-		const size_t i = (size_t) 31 - exponent;
+		const size_t i = static_cast<size_t>(31 - exponent);
 		if (i > 32) return;
 
-		buffer[i] = (uint8_t) (mantissa & 0xff);
-		buffer[i - 1] = (uint8_t) (mantissa >> 8);
-		buffer[i - 2] = (uint8_t) (mantissa >> 16);
-		buffer[i - 3] = (uint8_t) (mantissa >> 24);
+		buffer[i] = static_cast<uint8_t>(mantissa & 0xff);
+		buffer[i - 1] = static_cast<uint8_t>(mantissa >> 8);
+		buffer[i - 2] = static_cast<uint8_t>(mantissa >> 16);
+		buffer[i - 3] = static_cast<uint8_t>(mantissa >> 24);
 	}
 
 	auto transactions () const {
