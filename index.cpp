@@ -24,6 +24,7 @@ void processBlocks (Slice<uint8_t> data) {
 	memcpy(&wbuf[32], &block.header[4], 32);
 
 	fwrite(wbuf, sizeof(wbuf), 1, stdout);
+// 	writehexln(Slice<uint8_t>(wbuf, wbuf + sizeof(wbuf)));
 }
 
 void processScriptShas (Slice<uint8_t> data) {
@@ -43,7 +44,7 @@ void processScriptShas (Slice<uint8_t> data) {
 
 			// no locking, 84 bytes < PIPE_BUF (4096 bytes)
 			fwrite(wbuf, sizeof(wbuf), 1, stdout);
-// 			writehexln(Slice<uint8_t>(wbuf, wbuf + 84));
+// 			writehexln(Slice<uint8_t>(wbuf, wbuf + sizeof(wbuf)));
 		}
 
 		for (const auto& output : transaction.outputs) {
@@ -51,7 +52,7 @@ void processScriptShas (Slice<uint8_t> data) {
 
 			// no locking, 84 bytes < PIPE_BUF (4096 bytes)
 			fwrite(wbuf, sizeof(wbuf), 1, stdout);
-// 			writehexln(Slice<uint8_t>(wbuf, wbuf + 84));
+// 			writehexln(Slice<uint8_t>(wbuf, wbuf + sizeof(wbuf)));
 		}
 
 		transactions.popFront();
