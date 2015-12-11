@@ -127,14 +127,6 @@ private:
 public:
 	TransactionRange(size_t n, Slice<uint8_t> data) : n(n), data(data) {}
 
-	void popFront () {
-		this->n--;
-
-		if (this->n > 0) {
-			this->readTransaction();
-		}
-	}
-
 	auto empty () const { return this->n == 0; }
 	auto length () const { return this->n; }
 	auto& front () {
@@ -143,6 +135,14 @@ public:
 		}
 
 		return this->current;
+	}
+
+	void popFront () {
+		this->n--;
+
+		if (this->n > 0) {
+			this->readTransaction();
+		}
 	}
 };
 
