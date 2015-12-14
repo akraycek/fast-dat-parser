@@ -23,9 +23,6 @@ struct Chain {
 	size_t work = 0;
 
 	Chain () {}
-	Chain (Block* block) : block(block), previous(nullptr) {
-		assert(block != nullptr);
-	}
 	Chain (Block* block, Chain* previous) : block(block), previous(previous) {
 		assert(block != nullptr);
 		assert(previous != nullptr);
@@ -64,7 +61,7 @@ auto& buildChains(std::map<Block*, Chain>& chains, const std::map<hash_t, Block*
 
 	// if prevBlock is unknown, it must be a genesis block
 	if (prevBlockIter == hashMap.end()) {
-		chains[root] = Chain(root);
+		chains[root] = Chain(root, nullptr);
 
 		return chains[root];
 	}
