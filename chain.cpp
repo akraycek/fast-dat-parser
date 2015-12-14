@@ -5,6 +5,8 @@
 #include <iostream>
 #include <map>
 #include <vector>
+
+#include "hash.hpp"
 #include "utils.hpp"
 
 typedef std::array<uint8_t, 32> hash_t;
@@ -23,12 +25,10 @@ struct Chain {
 	size_t work = 0;
 
 	Chain () {}
-	Chain (Block* block, Chain* previous) : block(block), previous(previous) {
-		assert(block != nullptr);
-		assert(previous != nullptr);
-	}
+	Chain (Block* block, Chain* previous) : block(block), previous(previous) {}
 
 	size_t determineAggregateWork () {
+		if (this->work != 0) return this->work;
 		this->work = this->block->bits;
 
 		if (this->previous != nullptr) {
@@ -50,8 +50,8 @@ struct Chain {
 	}
 };
 
-auto& buildChains(std::map<Block*, Chain>& chains, const std::map<hash_t, Block*>& hashMap, Block* root) {
-	const auto blockChainIter = chains.find(root);
+auto& buildChains(std::map<hash_t, Chain>& chains, const std::map<hash_t, Block*>& hashMap, Block* root) {
+	const auto blockChainIter = chains.find(root->hash);
 
 	// already built this?
 	if (blockChainIter != chains.end()) return blockChainIter->second;
@@ -61,22 +61,22 @@ auto& buildChains(std::map<Block*, Chain>& chains, const std::map<hash_t, Block*
 
 	// if prevBlock is unknown, it must be a genesis block
 	if (prevBlockIter == hashMap.end()) {
-		chains[root] = Chain(root, nullptr);
+		chains[root->hash] = Chain(root, nullptr);
 
-		return chains[root];
+		return chains[root->hash];
 	}
 
 	// otherwise, recurse down to the genesis block, building the chain on the way back
 	const auto prevBlock = prevBlockIter->second;
 	auto& prevBlockChain = buildChains(chains, hashMap, prevBlock);
 
-	chains[root] = Chain(root, &prevBlockChain);
+	chains[root->hash] = Chain(root, &prevBlockChain);
 
-	return chains[root];
+	return chains[root->hash];
 }
 
 // TODO: change this to findBest using most-work over best
-auto findBest(std::map<Block*, Chain>& chains) {
+auto findBest(std::map<hash_t, Chain>& chains) {
 	auto bestChain = chains.begin()->second;
 	size_t mostWork = 0;
 
@@ -111,9 +111,9 @@ int main () {
 		hash_t hash, prevBlockHash;
 		uint32_t bits;
 
-		memcpy(&hash[0], &buffer[0], 32);
-		memcpy(&prevBlockHash[0], &buffer[32 + 4], 32);
-		memcpy(&bits, &buffer[104], 4);
+		hash256(&hash[0], &buffer[0], 80);
+		memcpy(&prevBlockHash[0], &buffer[4], 32);
+		memcpy(&bits, &buffer[72], 4);
 
 		blocks.push_back(Block(hash, prevBlockHash, bits));
 	} while (true);
@@ -125,7 +125,7 @@ int main () {
 	}
 
 	// build all possible chains
-	std::map<Block*, Chain> chains;
+	std::map<hash_t, Chain> chains;
 	for (auto& block : blocks) {
 		buildChains(chains, hashMap, &block);
 	}

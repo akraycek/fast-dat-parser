@@ -9,13 +9,10 @@
 #include "threadpool.h"
 #include "utils.hpp"
 
-// BLOCK_HASH | BLOCK_HEADER
+// BLOCK_HEADER
 void dumpHeaders (Slice<uint8_t> data) {
-	auto block = Block(data.take(80), data.drop(80));
-	uint8_t wbuf[32 + 80];
-
-	hash256(&wbuf[0], block.header);
-	memcpy(&wbuf[32], &block.header[0], 80);
+	uint8_t wbuf[80];
+	memcpy(&wbuf[0], data.take(80).begin, 80);
 
 	fwrite(wbuf, sizeof(wbuf), 1, stdout);
 // 	fwritehexln(wbuf, sizeof(wbuf), stdout);
