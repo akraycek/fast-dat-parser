@@ -89,6 +89,8 @@ int main (int argc, char** argv) {
 // 	std::cerr << "Initialized " << nThreads << " threads in the thread pool" << std::endl;
 
 	uint64_t remainder = 0;
+	bool dirty = false;
+	size_t count = 0;
 
 	while (true) {
 		const auto rdbuf = iobuffer.drop(remainder);
@@ -102,20 +104,21 @@ int main (int argc, char** argv) {
 		std::swap(buffer, iobuffer);
 
 		auto slice = buffer.take(remainder + read);
-// 		std::cerr << "-- Processing " << slice.length() / 1024 << " KiB" << std::endl;
+		std::cerr << "-- " << count << " Blocks (processing " << slice.length() / 1024 << " KiB)" << std::endl;
 
 		while (slice.length() >= 88) {
 			// skip bad data (e.g bitcoind zero pre-allocations)
 			if (slice.peek<uint32_t>() != 0xd9b4bef9) {
 				slice.popFrontN(4);
+				dirty = true;
 
 				continue;
 			}
 
 			const auto header = Block(slice.drop(8).take(80));
 
-			// skip bad data cont.
-			if (!header.verify()) {
+			// skip bad data cont. (only verify if it was dirty)
+			if (dirty && !header.verify()) {
 				slice.popFrontN(4);
 
 				continue;
@@ -129,6 +132,7 @@ int main (int argc, char** argv) {
 			// process the data
 			const auto data = slice.drop(8).take(needed - 8);
 			pool.push([data, delegate]() { delegate(data); });
+			count++;
 
 			slice.popFrontN(needed);
 		}
