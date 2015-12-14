@@ -12,14 +12,15 @@ typedef std::array<uint8_t, 32> hash_t;
 struct Block {
 	hash_t hash;
 	hash_t prevBlockHash;
+	uint32_t bits;
 
-	Block (const hash_t& hash, const hash_t& prevBlockHash) : hash(hash), prevBlockHash(prevBlockHash) {}
+	Block (const hash_t& hash, const hash_t& prevBlockHash, const uint32_t bits) : hash(hash), prevBlockHash(prevBlockHash), bits(bits) {}
 };
 
 struct Chain {
 	Block* block;
 	Chain* previous;
-	size_t depth = 0;
+	size_t work = 0;
 
 	Chain () {}
 	Chain (Block* block) : block(block), previous(nullptr) {
@@ -67,29 +68,30 @@ auto& buildChains(std::map<Block*, Chain>& chains, const std::map<hash_t, Block*
 	return chains[root];
 }
 
-// TODO: change this to findBest using most-work over longest
-auto findLongest(std::map<Block*, Chain>& chains) {
+// TODO: change this to findBest using most-work over best
+auto findBest(std::map<Block*, Chain>& chains) {
 	auto bestChain = chains.begin()->second;
-	size_t bestDepth = 0;
+	size_t mostWork = 0;
 
 	for (auto& chainIter : chains) {
 		auto&& chain = chainIter.second;
 
-		if (chain.depth == 0) {
+		if (chain.work == 0) {
 			chain.every([&](const Chain& subChain) {
-				if (subChain.depth > 0) {
-					chain.depth += subChain.depth;
+				// pre-visited chain?
+				if (subChain.work != 0) {
+					chain.work = subChain.work + chain.block->bits;
 					return false;
 				}
 
-				chain.depth++;
+				chain.work += subChain.block->bits;
 				return true;
 			});
 		}
 
-		if (chain.depth > bestDepth) {
+		if (chain.work > mostWork) {
 			bestChain = chain;
-			bestDepth = chain.depth;
+			mostWork = chain.work;
 		}
 	}
 
@@ -106,17 +108,20 @@ int main () {
 	std::vector<Block> blocks;
 
 	do {
-		uint8_t buffer[64];
-		const auto read = fread(&buffer[0], 1, 64, stdin);
+		uint8_t buffer[80];
+		const auto read = fread(&buffer[0], 1, sizeof(buffer), stdin);
 
 		// EOF
-		if (static_cast<size_t>(read) < 64) break;
+		if (static_cast<size_t>(read) < sizeof(buffer)) break;
 
 		hash_t hash, prevBlockHash;
-		memcpy(&hash[0], &buffer[0], 32);
-		memcpy(&prevBlockHash[0], &buffer[32], 32);
+		uint32_t bits;
 
-		blocks.push_back(Block(hash, prevBlockHash));
+		memcpy(&hash[0], &buffer[0], 32);
+		memcpy(&prevBlockHash[0], &buffer[32 + 4], 32);
+		memcpy(&bits, &buffer[104], 4);
+
+		blocks.push_back(Block(hash, prevBlockHash, bits));
 	} while (true);
 
 	// build a hash map for easy referencing
@@ -133,11 +138,11 @@ int main () {
 		buildChains(chains, hashMap, &block);
 	}
 
-	std::cerr << "-[]-[] Finding longest chain ..." << std::endl;
-	auto longestBlockChain = findLongest(chains);
+	std::cerr << "-[]-[] Finding best chain ..." << std::endl;
+	auto bestBlockChain = findBest(chains);
 
-	std::cerr << "-[]-[]-[] Found chain with length " << longestBlockChain.size() << std::endl;
-	for(auto it = longestBlockChain.rbegin(); it != longestBlockChain.rend(); ++it) {
+	std::cerr << "-[]-[]-[] Found chain with length " << bestBlockChain.size() << std::endl;
+	for(auto it = bestBlockChain.rbegin(); it != bestBlockChain.rend(); ++it) {
 		std::reverse(&it->hash[0], &it->hash[32]);
 
 		fwritehexln(&it->hash[0], 32, stdout);
