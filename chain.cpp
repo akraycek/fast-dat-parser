@@ -67,7 +67,8 @@ auto& buildChains(std::map<Block*, Chain>& chains, const std::map<hash_t, Block*
 	return chains[root];
 }
 
-auto findDeepest(std::map<Block*, Chain>& chains) {
+// TODO: change this to findBest using most-work over longest
+auto findLongest(std::map<Block*, Chain>& chains) {
 	auto bestChain = chains.begin()->second;
 	size_t bestDepth = 0;
 
@@ -132,11 +133,11 @@ int main () {
 		buildChains(chains, hashMap, &block);
 	}
 
-	std::cerr << "-[]-[] Finding deepest chain ..." << std::endl;
-	auto bestBlockChain = findDeepest(chains);
+	std::cerr << "-[]-[] Finding longest chain ..." << std::endl;
+	auto longestBlockChain = findLongest(chains);
 
-	std::cerr << "-[]-[]-[] Found chain with length " << bestBlockChain.size() << std::endl;
-	for(auto it = bestBlockChain.rbegin(); it != bestBlockChain.rend(); ++it) {
+	std::cerr << "-[]-[]-[] Found chain with length " << longestBlockChain.size() << std::endl;
+	for(auto it = longestBlockChain.rbegin(); it != longestBlockChain.rend(); ++it) {
 		std::reverse(&it->hash[0], &it->hash[32]);
 
 		fwritehexln(&it->hash[0], 32, stdout);
