@@ -4,7 +4,7 @@ chain: chain.cpp
 	g++ -O3 chain.cpp sha1.cpp sha256.cpp -std=c++14 -o chain
 
 filter: filter.cpp
-	g++ -O3 filter.cpp -std=c++14 -o chain
+	g++ -O3 filter.cpp -std=c++14 -o filter
 
 parser: parser.cpp
 	g++ -pthread -O3 parser.cpp sha1.cpp sha256.cpp -std=c++14 -o parser
