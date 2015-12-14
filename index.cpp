@@ -81,22 +81,19 @@ int main (int argc, char** argv) {
 
 	auto iobuffer = Slice<uint8_t>(backbuffer.get(), backbuffer.get() + bufferSize / 2);
 	auto buffer = Slice<uint8_t>(backbuffer.get() + bufferSize / 2, backbuffer.get() + bufferSize);
+	ThreadPool<std::function<void(void)>> pool(nThreads);
+
 // 	std::cerr << "Initialized buffer (" << bufferSize << " bytes)" << std::endl;
+// 	std::cerr << "Initialized " << nThreads << " threads in the thread pool" << std::endl;
 
 	uint64_t remainder = 0;
 
-	ThreadPool<std::function<void(void)>> pool(nThreads);
-// 	std::cerr << "Initialized " << nThreads << " threads in the thread pool" << std::endl;
-
 	while (true) {
 		const auto rdbuf = iobuffer.drop(remainder);
-// 		std::cerr << "> Reading: " << rdbuf.length() / 1024 << "/" << iobuffer.length() / 1024 << " KiB" << std::endl;
-
 		const auto read = fread(rdbuf.begin, 1, rdbuf.length(), stdin);
 		const auto eof = static_cast<size_t>(read) < rdbuf.length();
-// 		std::cerr << "< Read: " << read / 1024 << "/" << rdbuf.length() / 1024 << " KiB" << std::endl;
 
-		// wait for all workers to finish before overwriting memory
+		// wait for all workers before overwrite
 		pool.wait();
 
 		// swap the buffers
@@ -105,29 +102,29 @@ int main (int argc, char** argv) {
 		auto slice = buffer.take(remainder + read);
 // 		std::cerr << "-- Processing " << slice.length() / 1024 << " KiB" << std::endl;
 
-		while (slice.length() >= 80) {
-			// skip bad data (includes bitcoind zero pre-allocations)
+		while (slice.length() >= 88) {
+			// skip bad data (e.g bitcoind zero pre-allocations)
 			if (slice.peek<uint32_t>() != 0xd9b4bef9) {
-				while (slice.length() >= 4 && slice.peek<uint32_t>() != 0xd9b4bef9) {
-					slice.popFrontN(4);
-				}
+				slice.popFrontN(4);
 
 				continue;
 			}
 
-			const auto length = slice.drop(4).peek<uint32_t>();
 			const auto header = Block(slice.drop(8).take(80));
 
+			// skip bad data cont.
 			if (!header.verify()) {
-				slice.popFrontN(80);
-// 				std::cerr << "Skipping invalid block" << std::endl;
-				break;
+				slice.popFrontN(4);
+
+				continue;
 			}
 
 			// do we have enough data?
+			const auto length = slice.drop(4).peek<uint32_t>();
 			const auto needed = 8 + length;
 			if (needed > slice.length()) break;
 
+			// process the data
 			const auto data = slice.drop(8).take(needed - 8);
 			pool.push([data, delegate]() { delegate(data); });
 
@@ -140,8 +137,6 @@ int main (int argc, char** argv) {
 		remainder = slice.length();
 		memcpy(&iobuffer[0], &slice[0], remainder);
 	}
-
-// 	std::cerr << "EOF" << std::endl;
 
 	return 0;
 }
