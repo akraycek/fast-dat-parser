@@ -1,11 +1,14 @@
 #include <array>
 #include <cstring>
+#include <iostream>
 #include <set>
 #include <vector>
 
+#include "utils.hpp"
+
 typedef std::array<uint8_t, 32> hash_t;
 
-static size_t chunkLength = 80;
+static size_t chunkLength = 84;
 static size_t hashOffset = 0;
 static std::string filterFileName;
 
@@ -43,6 +46,8 @@ int main (int argc, char** argv) {
 		filter.emplace(hash);
 	} while (true);
 
+	std::cerr << "Initialized set (" << filter.size() << " entries)" << std::endl;
+
 	// now filter stdin
 	std::vector<uint8_t> chunkBuffer(chunkLength);
 
@@ -56,7 +61,12 @@ int main (int argc, char** argv) {
 		memcpy(&hash[0], &chunkBuffer[hashOffset], chunkLength);
 
 		// not in the filter? skip it
-		if (filter.find(hash) == filter.end()) continue;
+		if (filter.find(hash) == filter.end()) {
+			std::cerr << "Filtered ";
+			fwritehexln(&hash[0], 32, stderr);
+
+			continue;
+		}
 
 		fwrite(&chunkBuffer[0], chunkLength, 1, stdout);
 	} while (true);
