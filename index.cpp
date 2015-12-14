@@ -11,11 +11,8 @@
 
 // BLOCK_HEADER
 void dumpHeaders (Slice<uint8_t> data) {
-	uint8_t wbuf[80];
-	memcpy(&wbuf[0], data.take(80).begin, 80);
-
-	fwrite(wbuf, sizeof(wbuf), 1, stdout);
-// 	fwritehexln(wbuf, sizeof(wbuf), stdout);
+	fwrite(data.begin, 80, 1, stdout);
+// 	fwritehexln(data.begin, 80, stdout);
 }
 
 // BLOCK_HASH | TX_HASH | SCRIPT_HASH
