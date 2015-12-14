@@ -58,7 +58,7 @@ auto& buildChains(std::map<Block*, Chain>& chains, const std::map<hash_t, Block*
 		return chains[root];
 	}
 
-	// otherwise, recurse to the genesis block, then build the chain on the way back
+	// otherwise, recurse down to the genesis block, building the chain on the way back
 	const auto prevBlock = prevBlockIter->second;
 	auto& prevBlockChain = buildChains(chains, hashMap, prevBlock);
 

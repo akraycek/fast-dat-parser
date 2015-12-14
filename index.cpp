@@ -17,8 +17,8 @@ void processBlocks (Slice<uint8_t> data) {
 	hash256(&wbuf[0], block.header);
 	memcpy(&wbuf[32], &block.header[4], 32);
 
-// 	fwrite(wbuf, sizeof(wbuf), 1, stdout);
-	fwritehexln(wbuf, sizeof(wbuf), stdout);
+	fwrite(wbuf, sizeof(wbuf), 1, stdout);
+// 	fwritehexln(wbuf, sizeof(wbuf), stdout);
 }
 
 // BLOCK_HASH | TX_HASH | SCRIPT_HASH
