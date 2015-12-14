@@ -95,7 +95,7 @@ private:
 		const auto source = this->data;
 		const auto version = this->data.read<uint32_t>();
 
-		auto inputs = this->current.inputs;
+		auto&& inputs = this->current.inputs;
 		inputs.resize(readVI(this->data));
 
 		for (auto &input : inputs) {
@@ -107,7 +107,7 @@ private:
 			input = Transaction::Input(hash, vout, script, sequence);
 		}
 
-		auto outputs = this->current.outputs;
+		auto&& outputs = this->current.outputs;
 		outputs.resize(readVI(this->data));
 
 		for (auto &output : outputs) {
