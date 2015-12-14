@@ -103,10 +103,10 @@ int main () {
 
 	do {
 		uint8_t buffer[80];
-		const auto read = fread(&buffer[0], 1, sizeof(buffer), stdin);
+		const auto read = fread(&buffer[0], sizeof(buffer), 1, stdin);
 
-		// EOF
-		if (static_cast<size_t>(read) < sizeof(buffer)) break;
+		// EOF?
+		if (read == 0) break;
 
 		hash_t hash, prevBlockHash;
 		uint32_t bits;
