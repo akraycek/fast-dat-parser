@@ -73,10 +73,10 @@ int main (int argc, char** argv) {
 	}
 
 	const auto delegate = FUNCTIONS[functionIndex];
-	const auto backbuffer = std::unique_ptr<uint8_t>(new uint8_t[bufferSize]);
+	std::vector<uint8_t> backbuffer(bufferSize);
 
-	auto iobuffer = Slice<uint8_t>(backbuffer.get(), backbuffer.get() + bufferSize / 2);
-	auto buffer = Slice<uint8_t>(backbuffer.get() + bufferSize / 2, backbuffer.get() + bufferSize);
+	auto iobuffer = Slice<uint8_t>(&backbuffer[0], &backbuffer[0] + bufferSize / 2);
+	auto buffer = Slice<uint8_t>(&backbuffer[0] + bufferSize / 2, &backbuffer[0] + bufferSize);
 	ThreadPool<std::function<void(void)>> pool(nThreads);
 
 // 	std::cerr << "Initialized buffer (" << bufferSize << " bytes)" << std::endl;
