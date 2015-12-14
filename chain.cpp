@@ -50,7 +50,7 @@ struct Chain {
 	}
 };
 
-auto& buildChains(std::map<hash_t, Chain>& chains, const std::map<hash_t, Block*>& hashMap, Block* root) {
+auto& findChains(std::map<hash_t, Chain>& chains, const std::map<hash_t, Block*>& hashMap, Block* root) {
 	const auto blockChainIter = chains.find(root->hash);
 
 	// already built this?
@@ -66,9 +66,9 @@ auto& buildChains(std::map<hash_t, Chain>& chains, const std::map<hash_t, Block*
 		return chains[root->hash];
 	}
 
-	// otherwise, recurse down to the genesis block, building the chain on the way back
+	// otherwise, recurse down to the genesis block, finding the chain on the way back
 	const auto prevBlock = prevBlockIter->second;
-	auto& prevBlockChain = buildChains(chains, hashMap, prevBlock);
+	auto& prevBlockChain = findChains(chains, hashMap, prevBlock);
 
 	chains[root->hash] = Chain(root, &prevBlockChain);
 
@@ -124,13 +124,13 @@ int main () {
 		hashMap[blocks[i].hash] = &blocks[i];
 	}
 
-	// build all possible chains
+	// find all possible chains
 	std::map<hash_t, Chain> chains;
 	for (auto& block : blocks) {
-		buildChains(chains, hashMap, &block);
+		findChains(chains, hashMap, &block);
 	}
 
-	// find the best
+	// now find the best
 	auto bestBlockChain = findBest(chains);
 
 	// print it out
