@@ -9,20 +9,20 @@
 #include "threadpool.h"
 #include "utils.hpp"
 
-// BLOCK_HASH | BLOCK_PREVHASH
-void processBlocks (Slice<uint8_t> data) {
+// BLOCK_HASH | BLOCK_HEADER
+void dumpHeaders (Slice<uint8_t> data) {
 	auto block = Block(data.take(80), data.drop(80));
-	uint8_t wbuf[32 + 32];
+	uint8_t wbuf[32 + 80];
 
 	hash256(&wbuf[0], block.header);
-	memcpy(&wbuf[32], &block.header[4], 32);
+	memcpy(&wbuf[32], &block.header[0], 80);
 
 	fwrite(wbuf, sizeof(wbuf), 1, stdout);
 // 	fwritehexln(wbuf, sizeof(wbuf), stdout);
 }
 
 // BLOCK_HASH | TX_HASH | SCRIPT_HASH
-void processScriptShas (Slice<uint8_t> data) {
+void dumpScriptShas (Slice<uint8_t> data) {
 	const auto block = Block(data.take(80), data.drop(80));
 	uint8_t wbuf[32 + 32 + 20] = {0};
 
@@ -56,8 +56,8 @@ void processScriptShas (Slice<uint8_t> data) {
 
 typedef void(*processFunction_t)(Slice<uint8_t>);
 processFunction_t FUNCTIONS[] = {
-	&processBlocks,
-	&processScriptShas
+	&dumpHeaders,
+	&dumpScriptShas
 };
 
 static size_t bufferSize = 100 * 1024 * 1024;
