@@ -9,10 +9,6 @@ struct Slice {
 	uint8_t* end;
 
 	Slice() : begin(nullptr), end(nullptr) {}
-	Slice(size_t n) {
-		this->begin = new uint8_t[n];
-		this->end = this->begin + n;
-	}
 	Slice(uint8_t* begin, uint8_t* end) : begin(begin), end(end) {
 		assert(begin);
 		assert(end);

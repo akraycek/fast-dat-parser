@@ -52,14 +52,20 @@ void processScriptShas (Slice<uint8_t> data) {
 	}
 }
 
+typedef void(*processFunction_t)(Slice<uint8_t>);
+processFunction_t FUNCTIONS[] = {
+	&processBlocks,
+	&processScriptShas
+};
+
 static size_t bufferSize = 100 * 1024 * 1024;
 static size_t nThreads = 1;
-static size_t function = 0;
+static size_t functionIndex = 0;
 
 auto parseArg (char* argv) {
 	if (sscanf(argv, "-b=%lu", &bufferSize) == 1) return true;
 	if (sscanf(argv, "-n=%lu", &nThreads) == 1) return true;
-	if (sscanf(argv, "-f=%lu", &function) == 1) return true;
+	if (sscanf(argv, "-f=%lu", &functionIndex) == 1) return true;
 	return false;
 }
 
@@ -70,25 +76,25 @@ int main (int argc, char** argv) {
 		return 1;
 	}
 
-	const auto delegate = function == 0 ? &processBlocks : &processScriptShas;
+	const auto delegate = FUNCTIONS[functionIndex];
 	const auto backbuffer = std::unique_ptr<uint8_t>(new uint8_t[bufferSize]);
 
 	auto iobuffer = Slice<uint8_t>(backbuffer.get(), backbuffer.get() + bufferSize / 2);
 	auto buffer = Slice<uint8_t>(backbuffer.get() + bufferSize / 2, backbuffer.get() + bufferSize);
-	std::cerr << "Initialized buffer (" << bufferSize << " bytes)" << std::endl;
+// 	std::cerr << "Initialized buffer (" << bufferSize << " bytes)" << std::endl;
 
 	uint64_t remainder = 0;
 
 	ThreadPool<std::function<void(void)>> pool(nThreads);
-	std::cerr << "Initialized " << nThreads << " threads in the thread pool" << std::endl;
+// 	std::cerr << "Initialized " << nThreads << " threads in the thread pool" << std::endl;
 
 	while (true) {
 		const auto rdbuf = iobuffer.drop(remainder);
-		std::cerr << "> Reading: " << rdbuf.length() / 1024 << "/" << iobuffer.length() / 1024 << " KiB" << std::endl;
+// 		std::cerr << "> Reading: " << rdbuf.length() / 1024 << "/" << iobuffer.length() / 1024 << " KiB" << std::endl;
 
 		const auto read = fread(rdbuf.begin, 1, rdbuf.length(), stdin);
 		const auto eof = static_cast<size_t>(read) < rdbuf.length();
-		std::cerr << "< Read: " << read / 1024 << "/" << rdbuf.length() / 1024 << " KiB" << std::endl;
+// 		std::cerr << "< Read: " << read / 1024 << "/" << rdbuf.length() / 1024 << " KiB" << std::endl;
 
 		// wait for all workers to finish before overwriting memory
 		pool.wait();
@@ -97,7 +103,7 @@ int main (int argc, char** argv) {
 		std::swap(buffer, iobuffer);
 
 		auto slice = buffer.take(remainder + read);
-		std::cerr << "-- Processing " << slice.length() / 1024 << " KiB" << std::endl;
+// 		std::cerr << "-- Processing " << slice.length() / 1024 << " KiB" << std::endl;
 
 		while (slice.length() >= 80) {
 			// skip bad data (includes bitcoind zero pre-allocations)
@@ -114,7 +120,7 @@ int main (int argc, char** argv) {
 
 			if (!header.verify()) {
 				slice.popFrontN(80);
-				std::cerr << "Skipping invalid block" << std::endl;
+// 				std::cerr << "Skipping invalid block" << std::endl;
 				break;
 			}
 
@@ -132,13 +138,10 @@ int main (int argc, char** argv) {
 
 		// assign remainder to front of iobuffer (rdbuf is offset to avoid overwrite on rawRead)
 		remainder = slice.length();
-
-		for (size_t i = 0; i < remainder; ++i) {
-			iobuffer[i] = slice[i];
-		}
+		memcpy(&iobuffer[0], &slice[0], remainder);
 	}
 
-	std::cerr << "EOF" << std::endl;
+// 	std::cerr << "EOF" << std::endl;
 
 	return 0;
 }
