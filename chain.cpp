@@ -31,14 +31,14 @@ struct Chain {
 		assert(previous != nullptr);
 	}
 
-	void determineAggregateWork () {
+	size_t determineAggregateWork () {
 		this->work = this->block->bits;
 
-		if (previous != nullptr) {
-			previous->determineAggregateWork();
-
-			this->work += previous->work;
+		if (this->previous != nullptr) {
+			this->work += this->previous->determineAggregateWork();
 		}
+
+		return this->work;
 	}
 
 	template <typename F>
@@ -85,12 +85,11 @@ auto findBest(std::map<Block*, Chain>& chains) {
 
 	for (auto& chainIter : chains) {
 		auto&& chain = chainIter.second;
+		auto work = chain.determineAggregateWork();
 
-		chain.determineAggregateWork();
-
-		if (chain.work > mostWork) {
+		if (work > mostWork) {
 			bestChain = chain;
-			mostWork = chain.work;
+			mostWork = work;
 		}
 	}
 
