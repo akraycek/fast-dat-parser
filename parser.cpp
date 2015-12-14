@@ -6,7 +6,7 @@
 #include "block.hpp"
 #include "hash.hpp"
 #include "slice.hpp"
-#include "threadpool.h"
+#include "threadpool.hpp"
 #include "utils.hpp"
 
 // BLOCK_HEADER
