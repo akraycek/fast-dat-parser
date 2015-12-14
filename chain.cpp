@@ -31,12 +31,22 @@ struct Chain {
 		assert(previous != nullptr);
 	}
 
+	void determineAggregateWork () {
+		this->work = this->block->bits;
+
+		if (previous != nullptr) {
+			previous->determineAggregateWork();
+
+			this->work += previous->work;
+		}
+	}
+
 	template <typename F>
-	void every (const F f) const {
+	void forEach (const F f) const {
 		auto link = this;
 
 		while (link != nullptr) {
-			if (!f(*link)) break;
+			f(*link);
 
 			link = (*link).previous;
 		}
@@ -76,18 +86,7 @@ auto findBest(std::map<Block*, Chain>& chains) {
 	for (auto& chainIter : chains) {
 		auto&& chain = chainIter.second;
 
-		if (chain.work == 0) {
-			chain.every([&](const Chain& subChain) {
-				// pre-visited chain?
-				if (subChain.work != 0) {
-					chain.work = subChain.work + chain.block->bits;
-					return false;
-				}
-
-				chain.work += subChain.block->bits;
-				return true;
-			});
-		}
+		chain.determineAggregateWork();
 
 		if (chain.work > mostWork) {
 			bestChain = chain;
@@ -96,9 +95,8 @@ auto findBest(std::map<Block*, Chain>& chains) {
 	}
 
 	std::vector<Block> blockchain;
-	bestChain.every([&](const Chain& chain) {
+	bestChain.forEach([&](const Chain& chain) {
 		blockchain.push_back(*(chain.block));
-		return true;
 	});
 
 	return blockchain;
@@ -130,18 +128,16 @@ int main () {
 		hashMap[blocks[i].hash] = &blocks[i];
 	}
 
-	std::cerr << "EOF" << std::endl;
-	std::cerr << "-[] Building chains: " << blocks.size() << " candidates" << std::endl;
-
+	// build all possible chains
 	std::map<Block*, Chain> chains;
 	for (auto& block : blocks) {
 		buildChains(chains, hashMap, &block);
 	}
 
-	std::cerr << "-[]-[] Finding best chain ..." << std::endl;
+	// find the best
 	auto bestBlockChain = findBest(chains);
 
-	std::cerr << "-[]-[]-[] Found chain with length " << bestBlockChain.size() << std::endl;
+	// print it out
 	for(auto it = bestBlockChain.rbegin(); it != bestBlockChain.rend(); ++it) {
 		std::reverse(&it->hash[0], &it->hash[32]);
 
