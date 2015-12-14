@@ -9,6 +9,7 @@
 #include "threadpool.h"
 #include "utils.hpp"
 
+// BLOCK_HASH | BLOCK_PREVHASH
 void processBlocks (Slice<uint8_t> data) {
 	auto block = Block(data.take(80), data.drop(80));
 	uint8_t wbuf[32 + 32];
@@ -20,6 +21,7 @@ void processBlocks (Slice<uint8_t> data) {
 	fwritehexln(wbuf, sizeof(wbuf), stdout);
 }
 
+// BLOCK_HASH | TX_HASH | SCRIPT_HASH
 void processScriptShas (Slice<uint8_t> data) {
 	const auto block = Block(data.take(80), data.drop(80));
 	uint8_t wbuf[32 + 32 + 20] = {0};
