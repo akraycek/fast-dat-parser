@@ -57,15 +57,15 @@ processFunction_t FUNCTIONS[] = {
 
 typedef std::array<uint8_t, 32> hash_t;
 
-auto importWhitelist (const std::string& filterFileName) {
+auto importWhitelist (const std::string& fileName) {
 	std::set<hash_t> set;
 
-	auto filterFile = fopen(filterFileName.c_str(), "r");
-	if (filterFile == nullptr) return set;
+	auto file = fopen(fileName.c_str(), "r");
+	if (file == nullptr) return set;
 
 	do {
 		hash_t hash;
-		const auto read = fread(&hash[0], 32, 1, filterFile);
+		const auto read = fread(&hash[0], 32, 1, file);
 
 		// EOF?
 		if (read == 0) break;
@@ -79,14 +79,14 @@ auto importWhitelist (const std::string& filterFileName) {
 static size_t bufferSize = 100 * 1024 * 1024;
 static size_t nThreads = 1;
 static size_t functionIndex = 0;
-static std::string filterFileName;
+static std::string whitelistFileName;
 
 auto parseArg (char* argv) {
-	if (sscanf(argv, "-b=%lu", &bufferSize) == 1) return true;
-	if (sscanf(argv, "-n=%lu", &nThreads) == 1) return true;
-	if (sscanf(argv, "-f=%lu", &functionIndex) == 1) return true;
-	if (strncmp(argv, "-i=", 3) == 0) {
-		filterFileName = std::string(&argv[3]);
+	if (sscanf(argv, "-b%lu", &bufferSize) == 1) return true;
+	if (sscanf(argv, "-n%lu", &nThreads) == 1) return true;
+	if (sscanf(argv, "-f%lu", &functionIndex) == 1) return true;
+	if (strncmp(argv, "-w", 3) == 0) {
+		whitelistFileName = std::string(&argv[3]);
 		return true;
 	}
 
@@ -103,10 +103,10 @@ int main (int argc, char** argv) {
 	const auto delegate = FUNCTIONS[functionIndex];
 
 	// if specified, import the whitelist
-	auto doWhitelist = !filterFileName.empty();
+	auto doWhitelist = !whitelistFileName.empty();
 	std::set<hash_t> whitelist;
 	if (doWhitelist) {
-		whitelist = importWhitelist(filterFileName);
+		whitelist = importWhitelist(whitelistFileName);
 		std::cerr << "Initialized whitelist (" << whitelist.size() << " entries)" << std::endl;
 	}
 
