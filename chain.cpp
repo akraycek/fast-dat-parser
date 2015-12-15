@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstring>
@@ -135,9 +134,8 @@ int main () {
 
 	// print it out
 	for(auto it = bestBlockChain.rbegin(); it != bestBlockChain.rend(); ++it) {
-		std::reverse(&it->hash[0], &it->hash[32]);
-
 		fwrite(&it->hash[0], 32, 1, stdout);
+
 // 		fwritehexln(&it->hash[0], 32, stdout);
 	}
 
