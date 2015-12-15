@@ -73,15 +73,15 @@ auto importWhitelist (const std::string& fileName) {
 	return set;
 }
 
-static size_t bufferSize = 100 * 1024 * 1024;
+static size_t memoryAlloc = 100 * 1024 * 1024;
 static size_t nThreads = 1;
 static size_t functionIndex = 0;
 static std::string whitelistFileName;
 
 auto parseArg (char* argv) {
-	if (sscanf(argv, "-b%lu", &bufferSize) == 1) return true;
-	if (sscanf(argv, "-n%lu", &nThreads) == 1) return true;
 	if (sscanf(argv, "-f%lu", &functionIndex) == 1) return true;
+	if (sscanf(argv, "-m%lu", &memoryAlloc) == 1) return true;
+	if (sscanf(argv, "-n%lu", &nThreads) == 1) return true;
 	if (strncmp(argv, "-w", 2) == 0) {
 		whitelistFileName = std::string(&argv[2]);
 		return true;
@@ -108,13 +108,13 @@ int main (int argc, char** argv) {
 	}
 
 	// pre-allocate buffers
-	std::vector<uint8_t> backbuffer(bufferSize);
-	auto iobuffer = Slice<uint8_t>(&backbuffer[0], &backbuffer[0] + bufferSize / 2);
-	auto buffer = Slice<uint8_t>(&backbuffer[0] + bufferSize / 2, &backbuffer[0] + bufferSize);
+	std::vector<uint8_t> backbuffer(memoryAlloc);
+	auto iobuffer = Slice<uint8_t>(&backbuffer[0], &backbuffer[0] + memoryAlloc / 2);
+	auto buffer = Slice<uint8_t>(&backbuffer[0] + memoryAlloc / 2, &backbuffer[0] + memoryAlloc);
 	ThreadPool<std::function<void(void)>> pool(nThreads);
 
-// 	std::cerr << "Initialized buffer (" << bufferSize << " bytes)" << std::endl;
-// 	std::cerr << "Initialized " << nThreads << " threads in the thread pool" << std::endl;
+	std::cerr << "Initialized buffers (2 * " << memoryAlloc / 2 << " bytes)" << std::endl;
+	std::cerr << "Initialized " << nThreads << " threads in the thread pool" << std::endl;
 
 	uint64_t remainder = 0;
 	bool dirty = false;
