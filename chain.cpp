@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "hash.hpp"
-#include "utils.hpp"
 
 typedef std::array<uint8_t, 32> hash_t;
 
@@ -135,8 +134,6 @@ int main () {
 	// print it out
 	for(auto it = bestBlockChain.rbegin(); it != bestBlockChain.rend(); ++it) {
 		fwrite(&it->hash[0], 32, 1, stdout);
-
-// 		fwritehexln(&it->hash[0], 32, stdout);
 	}
 
 	return 0;

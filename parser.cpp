@@ -8,12 +8,10 @@
 #include "hash.hpp"
 #include "slice.hpp"
 #include "threadpool.hpp"
-#include "utils.hpp"
 
 // BLOCK_HEADER
 void dumpHeaders (Slice<uint8_t> data) {
 	fwrite(data.begin, 80, 1, stdout);
-// 	fwritehexln(data.begin, 80, stdout);
 }
 
 // BLOCK_HASH | TX_HASH | SCRIPT_HASH
@@ -34,7 +32,6 @@ void dumpScriptShas (Slice<uint8_t> data) {
 
 			// no locking, 84 bytes < PIPE_BUF (4096 bytes)
 			fwrite(wbuf, sizeof(wbuf), 1, stdout);
-// 			fwritehexln(wbuf, sizeof(wbuf), stdout);
 		}
 
 		for (const auto& output : transaction.outputs) {
@@ -42,7 +39,6 @@ void dumpScriptShas (Slice<uint8_t> data) {
 
 			// no locking, 84 bytes < PIPE_BUF (4096 bytes)
 			fwrite(wbuf, sizeof(wbuf), 1, stdout);
-// 			fwritehexln(wbuf, sizeof(wbuf), stdout);
 		}
 
 		transactions.popFront();
@@ -172,9 +168,7 @@ int main (int argc, char** argv) {
 				if (whitelist.find(hash) == whitelist.end()) {
 					slice.popFrontN(total);
 
-					std::cerr << "--- Skipped ";
-					fwritehexln(&hash[0], 32, stderr);
-
+					std::cerr << "--- Skipped block" << std::endl;
 					continue;
 				}
 			}
