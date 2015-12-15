@@ -103,7 +103,7 @@ int main (int argc, char** argv) {
 	const auto delegate = FUNCTIONS[functionIndex];
 
 	// if specified, import the whitelist
-	auto doWhitelist = !whitelistFileName.empty();
+	const auto doWhitelist = !whitelistFileName.empty();
 	std::set<hash_t> whitelist;
 	if (doWhitelist) {
 		whitelist = importWhitelist(whitelistFileName);
