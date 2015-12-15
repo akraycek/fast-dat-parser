@@ -95,9 +95,7 @@ auto parseArg (char* argv) {
 
 int main (int argc, char** argv) {
 	for (auto i = 1; i < argc; ++i) {
-		if (parseArg(argv[i])) continue;
-
-		return 1;
+		if (!parseArg(argv[i])) return 1;
 	}
 
 	const auto delegate = FUNCTIONS[functionIndex];
