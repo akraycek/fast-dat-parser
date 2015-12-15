@@ -9,7 +9,9 @@ All memory as allocated up front.
 All output goes to `stdout`, `stderr` is used for logging.
 
 
-#### parser
+### parser
+
+A fast `blk*.dat` parser for bitcoin blockchain analysis.
 
 - `-f` - parse function (default `0`, see pre-packaged parse functions below)
 - `-m` - memory usage (default `104857600` bytes, ~100 MiB)
@@ -17,12 +19,18 @@ All output goes to `stdout`, `stderr` is used for logging.
 - `-w` - whitelist file, for omitting blocks from parsing
 
 
-##### parse functions
+#### parse functions
 
 - `0` - Outputs solely the *unordered* 80-byte block headers, may include orphans (binary, not hex)
 - `1` - Outputs every script hash, for every transaction, in every block, ~`BLOCK_HASH | TX_HASH | SCRIPT_HASH` (binary, not hex)
 
 Use `-w` to avoid orphan data being included. (see example for best chain filtering)
+
+
+### bestchain
+
+A best-chain filter for block headers.
+Accepts 80-byte block headers until EOF, finds the best-chain then outputs the resultant list of block hashes.
 
 
 ## Example
