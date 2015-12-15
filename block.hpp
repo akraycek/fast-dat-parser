@@ -184,7 +184,7 @@ struct Block {
 
 	auto verify () const {
 		uint8_t hash[32];
-		uint8_t _target[32] = {0};
+		uint8_t _target[32] = {};
 
 		hash256(&hash[0], this->header);
 		std::reverse(&hash[0], &hash[32]);

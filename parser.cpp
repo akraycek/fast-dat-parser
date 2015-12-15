@@ -19,7 +19,7 @@ void dumpHeaders (Slice<uint8_t> data) {
 // BLOCK_HASH | TX_HASH | SCRIPT_HASH
 void dumpScriptShas (Slice<uint8_t> data) {
 	const auto block = Block(data.take(80), data.drop(80));
-	uint8_t wbuf[32 + 32 + 20] = {0};
+	uint8_t wbuf[32 + 32 + 20] = {};
 
 	hash256(&wbuf[0], block.header);
 
