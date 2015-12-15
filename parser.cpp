@@ -1,3 +1,4 @@
+#include <array>
 #include <cstdio>
 #include <cstring>
 #include <functional>
