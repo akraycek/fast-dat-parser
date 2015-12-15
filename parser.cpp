@@ -2,6 +2,7 @@
 #include <cstring>
 #include <functional>
 #include <iostream>
+#include <set>
 
 #include "block.hpp"
 #include "hash.hpp"
@@ -54,14 +55,41 @@ processFunction_t FUNCTIONS[] = {
 	&dumpScriptShas
 };
 
+typedef std::array<uint8_t, 32> hash_t;
+
+auto importWhitelist (const std::string& filterFileName) {
+	std::set<hash_t> set;
+
+	auto filterFile = fopen(filterFileName.c_str(), "r");
+	if (filterFile == nullptr) return set;
+
+	do {
+		hash_t hash;
+		const auto read = fread(&hash[0], 32, 1, filterFile);
+
+		// EOF?
+		if (read == 0) break;
+
+		set.emplace(hash);
+	} while (true);
+
+	return set;
+}
+
 static size_t bufferSize = 100 * 1024 * 1024;
 static size_t nThreads = 1;
 static size_t functionIndex = 0;
+static std::string filterFileName;
 
 auto parseArg (char* argv) {
 	if (sscanf(argv, "-b=%lu", &bufferSize) == 1) return true;
 	if (sscanf(argv, "-n=%lu", &nThreads) == 1) return true;
 	if (sscanf(argv, "-f=%lu", &functionIndex) == 1) return true;
+	if (strncmp(argv, "-i=", 3) == 0) {
+		filterFileName = std::string(&argv[3]);
+		return true;
+	}
+
 	return false;
 }
 
@@ -73,8 +101,17 @@ int main (int argc, char** argv) {
 	}
 
 	const auto delegate = FUNCTIONS[functionIndex];
-	std::vector<uint8_t> backbuffer(bufferSize);
 
+	// if specified, import the whitelist
+	auto doWhitelist = !filterFileName.empty();
+	std::set<hash_t> whitelist;
+	if (doWhitelist) {
+		whitelist = importWhitelist(filterFileName);
+		std::cerr << "Initialized whitelist (" << whitelist.size() << " entries)" << std::endl;
+	}
+
+	// pre-allocate buffers
+	std::vector<uint8_t> backbuffer(bufferSize);
 	auto iobuffer = Slice<uint8_t>(&backbuffer[0], &backbuffer[0] + bufferSize / 2);
 	auto buffer = Slice<uint8_t>(&backbuffer[0] + bufferSize / 2, &backbuffer[0] + bufferSize);
 	ThreadPool<std::function<void(void)>> pool(nThreads);
@@ -109,26 +146,46 @@ int main (int argc, char** argv) {
 				continue;
 			}
 
-			const auto header = Block(slice.drop(8).take(80));
+			// skip bad data cont. (verify if dirty)
+			const auto header = slice.drop(8).take(80);
+			if (dirty) {
+				if (!Block(header).verify()) {
+					slice.popFrontN(4);
 
-			// skip bad data cont. (only verify if it was dirty)
-			if (dirty && !header.verify()) {
-				slice.popFrontN(4);
+					continue;
+				}
 
-				continue;
+				dirty = false;
 			}
 
 			// do we have enough data?
 			const auto length = slice.drop(4).peek<uint32_t>();
-			const auto needed = 8 + length;
-			if (needed > slice.length()) break;
+			const auto total = 8 + length;
+			if (total > slice.length()) break;
 
-			// process the data
-			const auto data = slice.drop(8).take(needed - 8);
+			// is whitelisting in effect?
+			if (doWhitelist) {
+				hash_t hash;
+				hash256(&hash[0], &header[0], 80);
+
+				// skip if not found
+				if (whitelist.find(hash) == whitelist.end()) {
+					slice.popFrontN(total);
+
+					std::cerr << "--- Filtered ";
+					fwritehexln(&hash[0], 32, stderr);
+
+					continue;
+				}
+			}
+
+			// lets do it, send the data to the threadpool
+			const auto data = slice.drop(8).take(length);
+
 			pool.push([data, delegate]() { delegate(data); });
 			count++;
 
-			slice.popFrontN(needed);
+			slice.popFrontN(total);
 		}
 
 		if (eof) break;
