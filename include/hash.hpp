@@ -1,7 +1,7 @@
 #pragma once
 
-#include "sha1.h"
-#include "sha256.h"
+#include "libconsensus/sha1.h"
+#include "libconsensus/sha256.h"
 
 void sha1 (uint8_t* dest, const uint8_t* src, size_t n) {
 	CSHA1 hash;
