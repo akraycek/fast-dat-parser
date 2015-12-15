@@ -87,7 +87,6 @@ auto parseArg (char* argv) {
 	if (sscanf(argv, "-f%lu", &functionIndex) == 1) return true;
 	if (strncmp(argv, "-w", 2) == 0) {
 		whitelistFileName = std::string(&argv[2]);
-		std::cerr << "Found WLFN " << whitelistFileName << std::endl;
 		return true;
 	}
 
@@ -173,7 +172,7 @@ int main (int argc, char** argv) {
 				if (whitelist.find(hash) == whitelist.end()) {
 					slice.popFrontN(total);
 
-					std::cerr << "--- Filtered ";
+					std::cerr << "--- Skipped ";
 					fwritehexln(&hash[0], 32, stderr);
 
 					continue;
