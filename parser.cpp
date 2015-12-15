@@ -85,8 +85,9 @@ auto parseArg (char* argv) {
 	if (sscanf(argv, "-b%lu", &bufferSize) == 1) return true;
 	if (sscanf(argv, "-n%lu", &nThreads) == 1) return true;
 	if (sscanf(argv, "-f%lu", &functionIndex) == 1) return true;
-	if (strncmp(argv, "-w", 3) == 0) {
-		whitelistFileName = std::string(&argv[3]);
+	if (strncmp(argv, "-w", 2) == 0) {
+		whitelistFileName = std::string(&argv[2]);
+		std::cerr << "Found WLFN " << whitelistFileName << std::endl;
 		return true;
 	}
 
@@ -105,6 +106,8 @@ int main (int argc, char** argv) {
 	std::set<hash_t> whitelist;
 	if (doWhitelist) {
 		whitelist = importWhitelist(whitelistFileName);
+		if (whitelist.empty()) return 1;
+
 		std::cerr << "Initialized whitelist (" << whitelist.size() << " entries)" << std::endl;
 	}
 
