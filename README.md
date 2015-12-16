@@ -1,12 +1,15 @@
 # fast-dat-parser
 
-Needs the *.dat files to be in-order, handles zero-byte gaps, but includes orphans.
-For fastest performance, pre-process the *.dat files to exclude orphans and remove zero-byte gaps, I guess.
+* Includes orphan blocks
+* Skips bitcoind allocated zero-byte gaps
 
-Using 4 modern cores, this parses the blockchain (w/ height @ ~378000) almost fast as your IO can pipe it out.
+For fastest performance, pre-process the *.dat files to exclude orphans and remove zero-byte gaps, probably.
 
-All memory as allocated up front.
-All output goes to `stdout`, `stderr` is used for logging.
+Parses the blockchain about as fast as your IO can pipe it out.
+
+All memory is allocated up front.
+
+Output goes to `stdout`, `stderr` is used for logging.
 
 
 ### parser
@@ -41,6 +44,6 @@ cat ~/.bitcoin/blocks/blk*.dat | ./parser -f0 -n4 > _headers.dat
 cat _headers.dat | ./bestchain > headers.dat
 rm _headers.dat
 
-# parse the blockchain, including only blocks matching hashes in headers.dat
+# parse only blocks who's hash is found in headers.dat (from above)
 cat ~/.bitcoin/blocks/blk*.dat | ./parser -f1 -n4 -wheaders.dat > scripts.dat
 ```
